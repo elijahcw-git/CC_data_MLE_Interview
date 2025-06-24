@@ -1,105 +1,123 @@
-# 📊 Credit Card Customer Segmentation Analysis
+# Credit Card Customer Segmentation Analysis
 
 ## Overview
 
-This project applies **unsupervised clustering** to a Kaggle credit card dataset to uncover distinct customer segments. It includes:
+This project applies unsupervised clustering to credit card usage data from Kaggle. The goal is to segment customers based on their transaction patterns to inform marketing and risk management strategies.
 
--   **Exploratory Data Analysis (EDA)**
--   **Feature Engineering** (including NaN handling of ratios)
--   **KMeans Clustering** (optimal cluster selection)
--   **PCA Visualization**
--   **Business interpretation** of each segment
+The work includes:
 
----
-
-## 🔍 Dataset
-
--   **Source**: `CC GENERAL.csv` from Kaggle
--   **Customers**: 8,950
--   **Features** include: balances, purchase totals, cash advances, frequencies, payments, tenure, plus engineered ratios.
+-   Exploratory Data Analysis (EDA)
+-   Feature engineering of behavioral metrics
+-   KMeans clustering with cluster selection analysis
+-   PCA visualization of cluster separation
+-   Interpretation of cluster profiles and business implications
 
 ---
 
-## 🧩 EDA
+## Dataset
 
-1. Displayed data structure, missing values, and summary statistics.
-2. Plotted histograms for distributions of major monetary features.
-3. Visualized correlations via a heatmap—confirmed strong interrelationships (e.g., purchases vs. payments), indicating redundancy.
-
-🧾 _Finding_: Monetary and frequency variables are heavily right-skewed, typical of credit card usage data.
-
----
-
-## 🔧 Feature Engineering
-
--   **Rates**:
-    -   `PURCHASES_PER_MONTH = PURCHASES / TENURE`
-    -   `CASH_ADVANCE_PER_MONTH = CASH_ADVANCE / TENURE`
--   **Ratios** (NaN if denominator is 0):
-    -   `ONEOFF_RATIO = ONEOFF_PURCHASES / PURCHASES`
-    -   `INSTALLMENT_RATIO = INSTALLMENTS_PURCHASES / PURCHASES`
-    -   `PAYMENT_RATIO = PAYMENTS / PURCHASES`
-    -   `CASHADV_CREDITLIMIT_RATIO = CASH_ADVANCE / CREDIT_LIMIT`
-
-> NaNs were later filled with zeros as a neutral choice—better than forcing arbitrary values.
+-   **Source:** `CC GENERAL.csv`
+-   **Kaggle link:** https://www.kaggle.com/datasets/arjunbhasin2013/ccdata
+-   **Records:** 8,950 customers
+-   **Features:** balances, purchase amounts and types, cash advances, credit limits, payments, tenure, and engineered ratios
 
 ---
 
-## 🎯 Scaling
+## Exploratory Data Analysis (EDA)
 
--   Applied **StandardScaler** (zero mean, unit variance) to all features—no log scaling.
--   Rationale: log transform did not adequately correct skew; ratios and scaling better preserved behavioral patterns.
-
----
-
-## 🔢 Clustering Approach
-
--   Explored **KMeans** with k in [2…10].
--   Evaluated using:
-    -   **Elbow plot** (inertia)
-    -   **Silhouette score**
--   Results:
-    -   Elbow method showed diminishing returns after **k=4–6**
-    -   Silhouette peaked at **k=6** (~0.21), though values were modest — indicating overlapping clusters
--   Chose **k = 4** for simplicity and interpretability.
+-   Inspected data structure, missing values, and distributions
+-   Found missing values in `CREDIT_LIMIT` and `MINIMUM_PAYMENTS`, filled using median
+-   Identified strong right skew in monetary variables (purchases, cash advances)
+-   Visualized feature correlations using a heatmap, confirming expected relationships (e.g., purchases and payments)
 
 ---
 
-## 📈 Visualization
+## Feature Engineering
 
--   Ran PCA (2 components) for cluster plotting.
--   The PCA scatter plot revealed overlapping clusters—clusters exist but are not fully separated in 2D space.
+Created new features to reflect customer behavior:
 
----
+-   `PURCHASES_PER_MONTH = PURCHASES / TENURE`
+-   `CASH_ADVANCE_PER_MONTH = CASH_ADVANCE / TENURE`
+-   `ONEOFF_RATIO = ONEOFF_PURCHASES / PURCHASES`
+-   `INSTALLMENT_RATIO = INSTALLMENTS_PURCHASES / PURCHASES`
+-   `PAYMENT_RATIO = PAYMENTS / PURCHASES`
+-   `CASHADV_CREDITLIMIT_RATIO = CASH_ADVANCE / CREDIT_LIMIT`
 
-## 🧠 Cluster Profiles (Approximate centroids)
-
-| Cluster | Profile Description                                                                                                 |
-| ------- | ------------------------------------------------------------------------------------------------------------------- |
-| **0**   | **Active transactors** – high balances, frequent high-value purchases (esp. one-off), payment ratio ~1              |
-| **1**   | **Moderate spenders** – installment-heavy purchases, low balances, diligent payers (payments > purchases)           |
-| **2**   | **Occasional cash & purchases** – low purchase frequency, moderate cash advance usage, high payment ratios          |
-| **3**   | **Heavy cash advance users** – low purchase activity, high cash advance relative to limit, high credit risk signals |
+Ratios where the denominator was zero were marked as NaN. These were later filled with zero to avoid introducing distortions into the clustering.
 
 ---
 
-## 💼 Business Implications
+## Scaling
 
-### Marketing Strategy:
-
--   **Cluster 0**: Target with loyalty and upsell opportunities.
--   **Cluster 1**: Offer higher credit limits, installment bonuses.
--   **Cluster 2**: Follow-up with product recommendations or reward prompts.
--   **Cluster 3**: Monitor closely, offer supportive loans, educate on financing options.
-
-### Risk Management:
-
--   **Cluster 3 (Cash advance dependent)** is high risk—potential candidates for early credit intervention.
--   **Cluster 1** is low risk and stable—eligible for growth strategies.
+-   All features were scaled using StandardScaler (mean 0, standard deviation 1)
+-   Log scaling was intentionally not applied because it did not materially improve the distribution symmetry
+-   Ratios and rates provided better normalization for clustering purposes
 
 ---
 
-## ✅ How to Run
+## Clustering Approach
 
-1. Download `CC GENERAL.csv` and place with the notebook.
-2. Execute all cells sequentially in a Python 3 environment with required libraries:
+-   Applied KMeans with cluster counts from 2 to 10
+-   Evaluated with:
+    -   Elbow method: diminishing inertia returns beyond 4–6 clusters
+    -   Silhouette score: peaked at 6 clusters (~0.21), indicating weak but present structure
+
+Chose **4 clusters** for balance between interpretability and model performance.
+
+---
+
+## PCA Visualization
+
+Used PCA to reduce features to two dimensions for visualization. The PCA scatter plot revealed overlapping clusters, consistent with the data forming gradients of behavior rather than sharply defined groups.
+
+---
+
+## Cluster Profiles
+
+| Cluster                                  | Description                                                                           |
+| ---------------------------------------- | ------------------------------------------------------------------------------------- |
+| **0: Active transactors**                | High balances, frequent high-value purchases (mostly one-off), payment ratio around 1 |
+| **1: Moderate spenders**                 | Low balances, installment-heavy purchases, payments greater than purchases            |
+| **2: Occasional spenders with cash use** | Low purchase frequency, moderate cash advances, high payments relative to purchases   |
+| **3: Cash advance dependent**            | High cash advance use relative to limit, low purchases, higher credit risk signals    |
+
+---
+
+## Business Implications
+
+**Marketing:**
+
+-   Cluster 0: Target with loyalty programs, upsell premium products
+-   Cluster 1: Offer higher credit limits, encourage installment purchases
+-   Cluster 2: Engage with targeted offers to increase activity
+-   Cluster 3: Provide financial support products, education on alternatives to cash advances
+
+**Risk management:**
+
+-   Cluster 3: Monitor for credit risk, consider early interventions
+-   Cluster 1: Low-risk group, good candidates for growth strategies
+
+---
+
+## How to Run
+
+1. Place `CC GENERAL.csv` in the same directory as the notebook
+2. Run all cells in a Python 3 environment
+3. Required libraries: `pandas`, `numpy`, `matplotlib`, `seaborn`, `scikit-learn`
+4. Review EDA outputs, cluster selection plots, PCA visualization, and cluster summaries
+
+---
+
+## Next Steps
+
+-   Engineer additional behavioral features (e.g., spend consistency, seasonality)
+-   Test alternative clustering algorithms like Gaussian Mixture Models (GMM)
+-   Integrate external data (e.g., demographics, credit bureau scores)
+-   Build time-based models to monitor customer segment transitions
+
+---
+
+## Files
+
+-   `notebook.ipynb`: Full code and visualizations
+-   `README.md`: Project summary and explanation
