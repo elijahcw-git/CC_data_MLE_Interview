@@ -2,122 +2,116 @@
 
 ## Overview
 
-This project applies unsupervised clustering to credit card usage data from Kaggle. The goal is to segment customers based on their transaction patterns to inform marketing and risk management strategies.
+This project applies unsupervised clustering techniques to a credit card customer dataset. The goal is to segment customers based on their usage patterns to support data-driven decisions in marketing and credit risk management.
 
-The work includes:
+The analysis includes:
 
 -   Exploratory Data Analysis (EDA)
--   Feature engineering of behavioral metrics
--   KMeans clustering with cluster selection analysis
--   PCA visualization of cluster separation
--   Interpretation of cluster profiles and business implications
+-   Feature engineering to quantify behavioral patterns
+-   KMeans clustering with cluster evaluation
+-   PCA visualization to explore cluster structure
+-   Interpretation of customer segments and business insights
 
 ---
 
 ## Dataset
 
 -   **Source:** `CC GENERAL.csv`
--   **Kaggle link:** https://www.kaggle.com/datasets/arjunbhasin2013/ccdata
--   **Records:** 8,950 customers
--   **Features:** balances, purchase amounts and types, cash advances, credit limits, payments, tenure, and engineered ratios
+-   **Link:** https://www.kaggle.com/datasets/arjunbhasin2013/ccdata
+-   **Samples:** 8,950 customers
+-   **Features:** Card balances, purchases (by type and frequency), cash advances, payments, credit limits, and tenure
 
 ---
 
 ## Exploratory Data Analysis (EDA)
 
--   Inspected data structure, missing values, and distributions
--   Found missing values in `CREDIT_LIMIT` and `MINIMUM_PAYMENTS`, filled using median
--   Identified strong right skew in monetary variables (purchases, cash advances)
--   Visualized feature correlations using a heatmap, confirming expected relationships (e.g., purchases and payments)
+-   Reviewed structure, distributions, and missing data
+-   Filled missing values in `CREDIT_LIMIT` and `MINIMUM_PAYMENTS` using median imputation
+-   Visualized variable distributions and a correlation matrix
+-   Observed expected relationships between key features (e.g., purchases and payments)
+-   Noted strong right skew in financial features — typical for transactional data
 
 ---
 
 ## Feature Engineering
 
-Created new features to reflect customer behavior:
+Created new features to better represent customer behavior:
 
--   `PURCHASES_PER_MONTH = PURCHASES / TENURE`
--   `CASH_ADVANCE_PER_MONTH = CASH_ADVANCE / TENURE`
--   `ONEOFF_RATIO = ONEOFF_PURCHASES / PURCHASES`
--   `INSTALLMENT_RATIO = INSTALLMENTS_PURCHASES / PURCHASES`
--   `PAYMENT_RATIO = PAYMENTS / PURCHASES`
--   `CASHADV_CREDITLIMIT_RATIO = CASH_ADVANCE / CREDIT_LIMIT`
+-   `PURCHASES_PER_MONTH` = total purchases divided by tenure
+-   `CASH_ADVANCE_PER_MONTH` = cash advance amount divided by tenure
+-   `ONEOFF_RATIO` = one-off purchases divided by total purchases
+-   `INSTALLMENT_RATIO` = installment purchases divided by total purchases
+-   `PAYMENT_RATIO` = payments divided by total purchases
+-   `CASHADV_CREDITLIMIT_RATIO` = cash advance divided by credit limit
 
-Ratios where the denominator was zero were marked as NaN. These were later filled with zero to avoid introducing distortions into the clustering.
-
----
-
-## Scaling
-
--   All features were scaled using StandardScaler (mean 0, standard deviation 1)
--   Log scaling was intentionally not applied because it did not materially improve the distribution symmetry
--   Ratios and rates provided better normalization for clustering purposes
+Where division by zero was possible, values were set to `NaN` and later filled with 0 during preprocessing. This approach avoids artificial inflation and keeps the data interpretable.
 
 ---
 
-## Clustering Approach
+## Data Scaling
 
--   Applied KMeans with cluster counts from 2 to 10
--   Evaluated with:
-    -   Elbow method: diminishing inertia returns beyond 4–6 clusters
-    -   Silhouette score: peaked at 6 clusters (~0.21), indicating weak but present structure
+-   Used `StandardScaler` to standardize features (mean = 0, standard deviation = 1)
+-   Did not apply log scaling — ratios and standard scaling provided sufficient normalization
+-   Ratios added scale-invariant behavioral insight that log transformation could not improve
 
-Chose **4 clusters** for balance between interpretability and model performance.
+---
+
+## Clustering Methodology
+
+-   Applied KMeans clustering for values of `k` from 2 to 10
+-   Evaluated clusters using:
+    -   **Elbow method:** Inertia decreased rapidly up to 4–6 clusters
+    -   **Silhouette score:** Peaked around 6 clusters (~0.21), indicating weak but non-random structure
+
+Selected **4 clusters** for balance between interpretability and performance.
 
 ---
 
 ## PCA Visualization
 
-Used PCA to reduce features to two dimensions for visualization. The PCA scatter plot revealed overlapping clusters, consistent with the data forming gradients of behavior rather than sharply defined groups.
+Used Principal Component Analysis (PCA) to project the high-dimensional dataset into two components. This helped visualize how customer clusters overlap and differentiate in a reduced feature space.
+
+Although clusters overlapped, PCA revealed some separation, supporting the notion of soft segment boundaries rather than rigid classes.
 
 ---
 
 ## Cluster Profiles
 
-| Cluster                                  | Description                                                                           |
-| ---------------------------------------- | ------------------------------------------------------------------------------------- |
-| **0: Active transactors**                | High balances, frequent high-value purchases (mostly one-off), payment ratio around 1 |
-| **1: Moderate spenders**                 | Low balances, installment-heavy purchases, payments greater than purchases            |
-| **2: Occasional spenders with cash use** | Low purchase frequency, moderate cash advances, high payments relative to purchases   |
-| **3: Cash advance dependent**            | High cash advance use relative to limit, low purchases, higher credit risk signals    |
+| Cluster                                     | Profile Description                                                                                                               |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **0 – Active Transactors**                  | High balances, frequent and large one-off purchases, payment ratios near 1. Regular, engaged card users.                          |
+| **1 – Moderate Installment Users**          | Lower balances, mostly installment purchases, and payment amounts typically exceeding purchases. Financially conservative.        |
+| **2 – Infrequent Purchasers with Cash Use** | Low purchase frequency, occasional cash advances, but high payments relative to spending. Likely light users or strategic payers. |
+| **3 – Cash Advance Dependent**              | Low purchases but heavy reliance on cash advances and high credit limit utilization. Higher credit risk profile.                  |
 
 ---
 
 ## Business Implications
 
-**Marketing:**
+### Marketing Strategy
 
--   Cluster 0: Target with loyalty programs, upsell premium products
--   Cluster 1: Offer higher credit limits, encourage installment purchases
--   Cluster 2: Engage with targeted offers to increase activity
--   Cluster 3: Provide financial support products, education on alternatives to cash advances
+-   **Cluster 0:** Target with rewards programs and premium product upsells
+-   **Cluster 1:** Offer line increases and installment promotions
+-   **Cluster 2:** Use targeted offers to encourage engagement
+-   **Cluster 3:** Promote financial education, alternatives to cash advances, or lower-risk credit tools
 
-**Risk management:**
+### Credit Risk Strategy
 
--   Cluster 3: Monitor for credit risk, consider early interventions
--   Cluster 1: Low-risk group, good candidates for growth strategies
+-   **Cluster 3:** Monitor closely for risk indicators and intervene early
+-   **Cluster 1:** Low-risk customers suitable for retention and growth campaigns
 
 ---
 
 ## How to Run
 
-1. Place `CC GENERAL.csv` in the same directory as the notebook
-2. Run all cells in a Python 3 environment
+1. Place `CC GENERAL.csv` in the working directory
+2. Run the Jupyter notebook in a Python 3 environment
 3. Required libraries: `pandas`, `numpy`, `matplotlib`, `seaborn`, `scikit-learn`
-4. Review EDA outputs, cluster selection plots, PCA visualization, and cluster summaries
+4. Review the outputs:
+    - Data distributions
+    - Correlation heatmaps
+    - Cluster selection plots
+    - PCA scatter plots
+    - Segment summaries and interpretations
 
 ---
-
-## Next Steps
-
--   Engineer additional behavioral features (e.g., spend consistency, seasonality)
--   Test alternative clustering algorithms like Gaussian Mixture Models (GMM)
--   Integrate external data (e.g., demographics, credit bureau scores)
--   Build time-based models to monitor customer segment transitions
-
----
-
-## Files
-
--   `notebook.ipynb`: Full code and visualizations
--   `README.md`: Project summary and explanation
